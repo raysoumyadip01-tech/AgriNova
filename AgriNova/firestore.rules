@@ -1,0 +1,250 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == 'soumyadipray2006@gmail.com')
+      );
+    }
+
+    function isValidPublicRole(role) {
+      return role in ['farmer', 'transporter', 'warehouse', 'retailer'];
+    }
+
+    function isValidTheme(theme) {
+      return theme in ['coffee', 'light', 'dark', 'system'];
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+          'uid',
+          'displayName',
+          'role',
+          'themePreference',
+          'languagePreference',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid',
+          'displayName',
+          'role',
+          'themePreference',
+          'languagePreference',
+          'createdAt',
+          'updatedAt'
+        ])
+        && isValidId(data.uid)
+        && data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 100
+        && isValidPublicRole(data.role)
+        && isValidTheme(data.themePreference)
+        && data.languagePreference is string
+        && data.languagePreference.size() >= 2 && data.languagePreference.size() <= 5
+        && data.languagePreference.matches('^[a-z]{2,5}$')
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivateInfo(data) {
+      return data.keys().hasAll(['uid', 'email', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'phone', 'location', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 160
+        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 32))
+        && (!('location' in data) || (data.location is string && data.location.size() <= 160))
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCropBatch(data) {
+      return data.keys().hasAll([
+          'ownerId',
+          'batchCode',
+          'name',
+          'category',
+          'quantityKg',
+          'destinationHub',
+          'riskScore',
+          'riskLevel',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId',
+          'batchCode',
+          'name',
+          'category',
+          'quantityKg',
+          'destinationHub',
+          'riskScore',
+          'riskLevel',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.batchCode is string && data.batchCode.size() >= 3 && data.batchCode.size() <= 32 && data.batchCode.matches('^[A-Z0-9\\-]+$')
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 120
+        && data.category is string && data.category.size() >= 2 && data.category.size() <= 40
+        && data.quantityKg is number && data.quantityKg > 0 && data.quantityKg <= 1000000
+        && data.destinationHub is string && data.destinationHub.size() >= 2 && data.destinationHub.size() <= 120
+        && data.riskScore is int && data.riskScore >= 0 && data.riskScore <= 100
+        && data.riskLevel in ['Low', 'Medium', 'High', 'Critical']
+        && data.status in ['Stored', 'Listed for Sale', 'In Transit', 'At Warehouse', 'Delivered', 'Rescued']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidShipmentRecord(data) {
+      return data.keys().hasAll([
+          'ownerId',
+          'shipmentCode',
+          'productName',
+          'destination',
+          'status',
+          'currentTempC',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId',
+          'shipmentCode',
+          'productName',
+          'destination',
+          'status',
+          'currentTempC',
+          'createdAt',
+          'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.shipmentCode is string && data.shipmentCode.size() >= 3 && data.shipmentCode.size() <= 32 && data.shipmentCode.matches('^[A-Z0-9\\-]+$')
+        && data.productName is string && data.productName.size() >= 2 && data.productName.size() <= 140
+        && data.destination is string && data.destination.size() >= 2 && data.destination.size() <= 120
+        && data.status in ['Created', 'Confirmed', 'Picked Up', 'In Transit', 'At Warehouse', 'Out for Delivery', 'Delivered', 'Delayed', 'Cancelled']
+        && data.currentTempC is number && data.currentTempC >= -50 && data.currentTempC <= 80
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && (isOwner(adminId) || isAdmin());
+      allow list, create, update, delete: if false;
+    }
+
+    match /user_profiles/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow create: if isValidId(userId)
+        && isVerifiedUser()
+        && isOwner(userId)
+        && isValidUserProfile(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidUserProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'themePreference', 'languagePreference', 'updatedAt']))
+          || (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'role', 'themePreference', 'languagePreference', 'updatedAt']))
+        );
+      allow delete: if isValidId(userId) && isVerifiedUser() && (isOwner(userId) || isAdmin());
+
+      match /private/{docId} {
+        allow get: if isValidId(userId) && isValidId(docId) && docId == 'contact' && (isOwner(userId) || isAdmin());
+        allow create: if isValidId(userId) && isValidId(docId) && docId == 'contact'
+          && isVerifiedUser()
+          && isOwner(userId)
+          && isValidUserPrivateInfo(incoming())
+          && incoming().uid == request.auth.uid
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId) && isValidId(docId) && docId == 'contact'
+          && isVerifiedUser()
+          && (isOwner(userId) || isAdmin())
+          && isValidUserPrivateInfo(incoming())
+          && incoming().uid == existing().uid
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'phone', 'location', 'updatedAt']);
+        allow delete: if isValidId(userId) && isValidId(docId) && docId == 'contact' && isVerifiedUser() && (isOwner(userId) || isAdmin());
+      }
+    }
+
+    match /crop_batches/{batchId} {
+      allow get: if isValidId(batchId) && isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(batchId)
+        && isVerifiedUser()
+        && isValidCropBatch(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(batchId)
+        && isVerifiedUser()
+        && isValidCropBatch(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (existing().status != 'Delivered' || isAdmin())
+        && (
+          (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'category', 'quantityKg', 'destinationHub', 'riskScore', 'riskLevel', 'status', 'updatedAt']))
+          || isAdmin()
+        );
+      allow delete: if isValidId(batchId) && isVerifiedUser() && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    match /shipments/{shipmentId} {
+      allow get: if isValidId(shipmentId) && isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(shipmentId)
+        && isVerifiedUser()
+        && isValidShipmentRecord(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(shipmentId)
+        && isVerifiedUser()
+        && isValidShipmentRecord(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (!(existing().status in ['Delivered', 'Cancelled']) || isAdmin())
+        && (
+          (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['destination', 'status', 'currentTempC', 'updatedAt']))
+          || isAdmin()
+        );
+      allow delete: if isValidId(shipmentId) && isVerifiedUser() && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+  }
+}

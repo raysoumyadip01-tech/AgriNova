@@ -1,0 +1,243 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Public role and UI preferences for an authenticated AgriNova user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "role": {
+          "type": "string",
+          "description": "Supply chain role",
+          "enum": ["farmer", "transporter", "warehouse", "retailer"]
+        },
+        "themePreference": {
+          "type": "string",
+          "description": "Preferred UI theme",
+          "enum": ["coffee", "light", "dark", "system"]
+        },
+        "languagePreference": {
+          "type": "string",
+          "description": "ISO language code for Farmer/Transporter UI",
+          "minLength": 2,
+          "maxLength": 5,
+          "pattern": "^[a-z]{2,5}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last update timestamp"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "role",
+        "themePreference",
+        "languagePreference",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Isolated PII record for user contact details.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 5,
+          "maxLength": 160
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "updatedAt"]
+    },
+    "CropBatch": {
+      "title": "CropBatch",
+      "description": "Farm produce batch registered by a farmer with cold-chain metrics.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "batchCode": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "category": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 40
+        },
+        "quantityKg": {
+          "type": "number"
+        },
+        "destinationHub": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "riskScore": {
+          "type": "integer"
+        },
+        "riskLevel": {
+          "type": "string",
+          "enum": ["Low", "Medium", "High", "Critical"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Stored", "Listed for Sale", "In Transit", "At Warehouse", "Delivered", "Rescued"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "batchCode",
+        "name",
+        "category",
+        "quantityKg",
+        "destinationHub",
+        "riskScore",
+        "riskLevel",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ShipmentRecord": {
+      "title": "ShipmentRecord",
+      "description": "Tracked produce dispatch and live cold-chain status.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "shipmentCode": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "productName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "destination": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Created",
+            "Confirmed",
+            "Picked Up",
+            "In Transit",
+            "At Warehouse",
+            "Out for Delivery",
+            "Delivered",
+            "Delayed",
+            "Cancelled"
+          ]
+        },
+        "currentTempC": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "shipmentCode",
+        "productName",
+        "destination",
+        "status",
+        "currentTempC",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/user_profiles/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User role & UI theme/language settings (no PII)"
+    },
+    "/user_profiles/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Owner-only private PII contact info (email, phone, location)"
+    },
+    "/crop_batches/{batchId}": {
+      "schema": { "$ref": "#/entities/CropBatch" },
+      "description": "Registered harvest batches owned by authenticated users"
+    },
+    "/shipments/{shipmentId}": {
+      "schema": { "$ref": "#/entities/ShipmentRecord" },
+      "description": "Live tracked shipments owned by authenticated users"
+    }
+  }
+}

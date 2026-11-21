@@ -1,0 +1,138 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    /* Default Crisp Field Light Palette */
+    --bg-canvas: #F8F7F4;
+    --bg-surface: #FFFFFF;
+    --bg-subtle: #F1EFE9;
+    --border-color: #E4DFD5;
+    --text-primary: #1F2421;
+    --text-secondary: #5A5F5B;
+    --brand-primary: #1B4332;
+    --brand-hover: #2D6A4F;
+    --brand-accent: #16A34A;
+  }
+
+  /* Artisanal Warm Coffee Theme (Espresso, Oat Milk & Caramel) */
+  html.theme-coffee {
+    --bg-canvas: #F4EDE2;
+    --bg-surface: #FFFDF8;
+    --bg-subtle: #EAE0D0;
+    --border-color: #D9CCB8;
+    --text-primary: #2D1E17;
+    --text-secondary: #6E5444;
+    --brand-primary: #5C3A21;
+    --brand-hover: #7B4B2A;
+    --brand-accent: #9C5221;
+  }
+
+  /* Night Soil Dark Theme */
+  html.dark {
+    --bg-canvas: #0F1419;
+    --bg-surface: #1A222C;
+    --bg-subtle: #111820;
+    --border-color: #2A3544;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --brand-primary: #16A34A;
+    --brand-hover: #15803D;
+    --brand-accent: #A3E635;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Coffee theme harmonious surface adaptation */
+html.theme-coffee .bg-white,
+html.theme-coffee .bg-\[\#FFFFFF\] {
+  background-color: #FFFDF8 !important;
+}
+
+html.theme-coffee .bg-\[\#F8FAFC\],
+html.theme-coffee .bg-\[\#F8FAFC\]\/95 {
+  background-color: #F4EDE2 !important;
+}
+
+html.theme-coffee .bg-slate-50,
+html.theme-coffee .bg-slate-100 {
+  background-color: #EDE3D3 !important;
+}
+
+html.theme-coffee .border-slate-200,
+html.theme-coffee .border-slate-200\/80,
+html.theme-coffee .border-slate-300 {
+  border-color: #D7C7B2 !important;
+}
+
+html.theme-coffee .text-slate-900 {
+  color: #2D1E17 !important;
+}
+
+html.theme-coffee .text-slate-700,
+html.theme-coffee .text-slate-800 {
+  color: #463125 !important;
+}
+
+html.theme-coffee .text-slate-500,
+html.theme-coffee .text-slate-600 {
+  color: #6F5343 !important;
+}
+
+html.theme-coffee .bg-\[\#14532D\] {
+  background-color: #5C3A21 !important;
+}
+
+html.theme-coffee .bg-\[\#14532D\]:hover,
+html.theme-coffee .hover\:bg-\[\#14532D\]:hover {
+  background-color: #7A4B2A !important;
+}
+
+html.theme-coffee .bg-\[\#16A34A\] {
+  background-color: #8B5A2B !important;
+}
+
+html.theme-coffee .hover\:bg-\[\#16A34A\]:hover {
+  background-color: #70431C !important;
+}
+
+html.theme-coffee .text-\[\#14532D\],
+html.theme-coffee .text-\[\#16A34A\] {
+  color: #7A431D !important;
+}
+
+html.theme-coffee .border-\[\#16A34A\],
+html.theme-coffee .hover\:border-\[\#16A34A\]:hover {
+  border-color: #8B5A2B !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

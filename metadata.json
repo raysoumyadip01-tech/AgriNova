@@ -1,0 +1,6 @@
+{
+  "name": "AgriNova",
+  "description": "AgriNova — Smart Harvest & Cold-Chain Intelligence connecting Farmers, Warehouses, Transporters, and Retailers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
