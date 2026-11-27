@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+: "${PORT:?Figma must provide PORT}"
+export NODE_ENV=development
+exec node --import tsx server.ts

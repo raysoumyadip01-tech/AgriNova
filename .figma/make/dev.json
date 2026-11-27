@@ -1,0 +1,4 @@
+{
+  "installOn": ["package.json", "package-lock.json"],
+  "restartOn": ["server.ts", "src/lib/firebase-admin.ts", "firebase-applet-config.json", "vite.config.ts"]
+}
